@@ -79,24 +79,24 @@ CGFloat const bfPaperTableViewCell_tapCircleDiameterDefault = -2.f;
     // Defaults for visual properties:                                                                                      //
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Animation:
-    self.touchDownAnimationDuration  = 0.3f;
-    self.touchUpAnimationDuration    = self.touchDownAnimationDuration * 2.5f;
+    self.touchDownAnimationDuration  = 0.2f;
+    self.touchUpAnimationDuration    = self.touchDownAnimationDuration;
     // Prettyness and Behaviour:
     self.usesSmartColor              = YES;
     self.tapCircleColor              = nil;
     self.backgroundFadeColor         = nil;
     self.rippleFromTapLocation       = YES;
     self.tapCircleDiameterStartValue = 5.f;
-    self.tapCircleDiameter           = bfPaperTableViewCell_tapCircleDiameterDefault;
+    self.tapCircleDiameter           = bfPaperTableViewCell_tapCircleDiameterFull;
     self.tapCircleBurstAmount        = 100.f;
     self.dumbTapCircleFillColor      = [UIColor colorWithWhite:0.3 alpha:0.25f];
     self.dumbBackgroundFadeColor     = [UIColor colorWithWhite:0.3 alpha:0.15f];
     self.letBackgroundLinger         = YES;
     self.alwaysCompleteFullAnimation = YES;
-    self.tapDelay                    = 0.1f;
+    self.tapDelay                    = 0.0f;
     self.maskPath                    = nil;
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+    
     
     self.rippleAnimationQueue = [NSMutableArray array];
     self.deathRowForCircleLayers = [NSMutableArray array];
@@ -112,10 +112,11 @@ CGFloat const bfPaperTableViewCell_tapCircleDiameterDefault = -2.f;
     self.backgroundColorFadeLayer.frame = self.fadeAndClippingMaskRect;
     self.backgroundColorFadeLayer.backgroundColor = [UIColor clearColor].CGColor;
     self.backgroundColorFadeLayer.opacity = 0;
-    [self.contentView.layer insertSublayer:self.backgroundColorFadeLayer atIndex:0];
-
+    unsigned idx = self.contentView.layer.sublayers.count == 0 ? 0 : (unsigned)self.contentView.layer.sublayers.count - 1;
+    [self.contentView.layer insertSublayer:self.backgroundColorFadeLayer atIndex: idx];
+    
     self.textLabel.backgroundColor = [UIColor clearColor];  // We don't want the text label to occlude our tap circles!
-
+    
     UITapGestureRecognizer *tapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:nil];
     tapGestureRecognizer.delegate = self;
     [self addGestureRecognizer:tapGestureRecognizer];
@@ -141,14 +142,14 @@ CGFloat const bfPaperTableViewCell_tapCircleDiameterDefault = -2.f;
 }
 
 /*- (void)prepareForReuse
-{
-    [super prepareForReuse];
-
-    // Lets go ahead and "reset" our cell:
-    // In your subclass, this is where you would call your custom setup.
-//    [self setupBFPaperTableViewCell];
-//    [self fadeBGOut];
-}*/
+ {
+ [super prepareForReuse];
+ 
+ // Lets go ahead and "reset" our cell:
+ // In your subclass, this is where you would call your custom setup.
+ //    [self setupBFPaperTableViewCell];
+ //    [self fadeBGOut];
+ }*/
 
 - (void)layoutSubviews
 {
@@ -157,6 +158,8 @@ CGFloat const bfPaperTableViewCell_tapCircleDiameterDefault = -2.f;
     self.fadeAndClippingMaskRect = CGRectMake(self.bounds.origin.x, self.bounds.origin.y , self.bounds.size.width, self.bounds.size.height);
     self.backgroundColorFadeLayer.frame = self.fadeAndClippingMaskRect;
     
+    unsigned idx = self.contentView.layer.sublayers.count == 0 ? 0 : (unsigned)self.contentView.layer.sublayers.count - 1;
+    [self.contentView.layer insertSublayer:self.backgroundColorFadeLayer atIndex: idx];
     [self setNeedsDisplay];
     [self.layer setNeedsDisplay];
 }
@@ -169,31 +172,31 @@ CGFloat const bfPaperTableViewCell_tapCircleDiameterDefault = -2.f;
     self.growthFinished = NO;
     
     if (self.tapDelay > 0) {
-      // Dispatch on main thread to delay animations
-      dispatch_main_after(self.tapDelay, ^{
-        if (!self.touchCancelledOrEnded) {
-          [self fadeBackgroundIn];
-          [self growTapCircle];
-        }
-        else {
-          [self setSelected:NO];
-          [self fadeBGOut];
-        }
-      });
+        // Dispatch on main thread to delay animations
+        dispatch_main_after(self.tapDelay, ^{
+            if (!self.touchCancelledOrEnded) {
+                [self fadeBackgroundIn];
+                [self growTapCircle];
+            }
+            else {
+                [self setSelected:NO];
+                [self fadeBGOut];
+            }
+        });
     }
     else {
-      // Avoid dispatching if there's no delay
-      [self fadeBackgroundIn];
-      [self growTapCircle];
+        // Avoid dispatching if there's no delay
+        [self fadeBackgroundIn];
+        [self growTapCircle];
     }
 }
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
     [super touchesEnded:touches withEvent:event];
-
+    
     self.touchCancelledOrEnded = YES;
-
+    
     [self removeCircle];
     if (!self.letBackgroundLinger) {
         [self removeBackground];
@@ -203,9 +206,9 @@ CGFloat const bfPaperTableViewCell_tapCircleDiameterDefault = -2.f;
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
 {
     [super touchesCancelled:touches withEvent:event];
-
+    
     self.touchCancelledOrEnded = YES;
-
+    
     [self removeCircle];
     [self removeBackground];
 }
@@ -301,7 +304,9 @@ CGFloat const bfPaperTableViewCell_tapCircleDiameterDefault = -2.f;
 - (void)fadeBackgroundIn
 {
     if (!self.backgroundFadeColor) {
-        self.backgroundFadeColor = self.usesSmartColor ? [self.textLabel.textColor colorWithAlphaComponent:CGColorGetAlpha(self.dumbBackgroundFadeColor.CGColor)] : self.dumbBackgroundFadeColor;
+        self.backgroundFadeColor = self.usesSmartColor
+        ? [UIColor colorWithRed:255.0/255.0 green:151.0/255.0 blue:0.0/255.0 alpha:0.1]
+        : self.dumbBackgroundFadeColor;
     }
     
     if (nil != self.maskPath) {
@@ -343,7 +348,9 @@ CGFloat const bfPaperTableViewCell_tapCircleDiameterDefault = -2.f;
     
     // Set the fill color for the tap circle (self.animationLayer's fill color):
     if (!self.tapCircleColor) {
-        self.tapCircleColor = self.usesSmartColor ? [self.textLabel.textColor colorWithAlphaComponent:CGColorGetAlpha(self.dumbTapCircleFillColor.CGColor)] : self.dumbTapCircleFillColor;
+        self.tapCircleColor = self.usesSmartColor
+        ? [UIColor colorWithRed:255.0/255.0 green:151.0/255.0 blue:0.0/255.0 alpha:0.1]
+        : self.dumbTapCircleFillColor;
     }
     
     // Calculate the tap circle's ending diameter:
@@ -452,7 +459,7 @@ CGFloat const bfPaperTableViewCell_tapCircleDiameterDefault = -2.f;
         [self.rippleAnimationQueue removeObjectAtIndex:0];
     }
     [self.deathRowForCircleLayers addObject:tapCircle];
-
+    
     
     // Calculate the tap circle's ending diameter:
     CGFloat tapCircleFinalDiameter = [self calculateTapCircleFinalDiameter];
@@ -531,3 +538,4 @@ static void dispatch_main_after(NSTimeInterval delay, void (^block)(void))
 
 
 @end
+
