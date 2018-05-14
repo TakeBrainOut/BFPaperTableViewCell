@@ -95,6 +95,7 @@ CGFloat const bfPaperTableViewCell_tapCircleDiameterDefault = -2.f;
     self.alwaysCompleteFullAnimation = YES;
     self.tapDelay                    = 0.0f;
     self.maskPath                    = nil;
+    self.allowHighlighted            = YES;
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     
     
@@ -128,6 +129,10 @@ CGFloat const bfPaperTableViewCell_tapCircleDiameterDefault = -2.f;
 {
     [super setSelected:selected animated:animated];
     //NSLog(@"setSelected:\'%@\' animated:\'%@\'", selected ? @"YES" : @"NO", animated ? @"YES" : @"NO");
+    
+    if (!self.allowHighlighted) {
+        return;
+    }
     
     if (!self.letBackgroundLinger) {
         return; // If we are not letting the background linger, just return as we have nothing more to do here.
@@ -171,6 +176,10 @@ CGFloat const bfPaperTableViewCell_tapCircleDiameterDefault = -2.f;
     self.touchCancelledOrEnded = NO;
     self.growthFinished = NO;
     
+    if (!self.allowHighlighted) {
+        return;
+    }
+    
     if (self.tapDelay > 0) {
         // Dispatch on main thread to delay animations
         dispatch_main_after(self.tapDelay, ^{
@@ -197,6 +206,10 @@ CGFloat const bfPaperTableViewCell_tapCircleDiameterDefault = -2.f;
     
     self.touchCancelledOrEnded = YES;
     
+    if (!self.allowHighlighted) {
+        return;
+    }
+    
     [self removeCircle];
     if (!self.letBackgroundLinger) {
         [self removeBackground];
@@ -208,6 +221,10 @@ CGFloat const bfPaperTableViewCell_tapCircleDiameterDefault = -2.f;
     [super touchesCancelled:touches withEvent:event];
     
     self.touchCancelledOrEnded = YES;
+    
+    if (!self.allowHighlighted) {
+        return;
+    }
     
     [self removeCircle];
     [self removeBackground];

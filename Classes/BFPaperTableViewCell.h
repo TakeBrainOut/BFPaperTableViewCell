@@ -55,6 +55,10 @@ IB_DESIGNABLE
 
 
 #pragma mark Prettyness and Behaviour
+
+/** A flag to set NO to rectrict highlight, Default is YES. */
+@property (nonatomic) BOOL allowHighlighted;
+
 /** A flag to set YES to use Smart Color, or NO to use a custom color scheme. While Smart Color is recommended, customization is cool too. */
 @property (nonatomic) IBInspectable BOOL usesSmartColor;
 
